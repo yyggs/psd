@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Add keyframes for the loading animation */
+        @keyframes loadProgress {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
+        <h1 class="text-2xl font-bold text-gray-800 mb-8">We are uploading and analyzing your paper</h1>
+        <div class="w-1/2 bg-white shadow-md rounded-xl p-6">
+            <div class="mb-4">
+                <p class="text-sm text-gray-500 mb-2">The first upload and analysis may take some time, approximately 30 seconds.</p>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    <!-- Change the color to red and add the animation -->
+                    <div class="bg-red-600 h-2.5 rounded-full" style="animation: loadProgress 3s ease-in-out forwards;"></div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-gray-500">Analyzing document...</p>
+                <!-- Remove the static percentage -->
+                <p class="text-sm text-gray-500"></p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/process-file')
+                .then(response => response.json())
+                .then(data => {
+                    // 在这里处理并显示处理后的文章数据
+                    console.log(data);
+                    checkDataReady();
+                })
+                .catch(error => console.error('Error processing file:', error));
+
+            // 定义检查数据是否准备好的函数
+            function checkDataReady() {
+                const checkDataInterval = setInterval(() => {
+                    fetch('/check-data-ready')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.ready) {
+                                clearInterval(checkDataInterval); // 停止轮询
+                                console.log('Redirecting to page3 as data is ready.');
+                                window.location.href = '/page3'; // 数据准备好了，跳转到 page3
+                            } else {
+                                // 可以在这里更新用户界面，例如进度指示器，表示正在检查数据
+                                console.log('Data not ready yet, checking again...');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking data readiness:', error);
+                            clearInterval(checkDataInterval); // 出现错误时停止轮询
+                        });
+                }, 1000); // 每2秒检查一次
+            }
+        });
+
+
+    </script>
+      
+</body>
+</html>

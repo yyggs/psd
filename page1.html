@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Similar Papers Finder</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #FFFFFF; 
+      color: #000000; 
+    }
+    .custom-shadow {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .enlarged-button {
+      padding: 1rem 2rem; 
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center h-screen p-4">
+  <header class="text-center mb-8">
+    <h1 class="text-3xl font-bold mb-2">Similar Papers Finder</h1>
+    <p class="text-lg">We will give you the most 3 similar papers in our paper collections and analyse these papers</p>
+  </header>
+  
+  <div class="flex flex-col items-center">
+    <button onclick="document.getElementById('fileInput').click()" class="bg-red-600 hover:bg-red-700 text-white font-bold enlarged-button rounded custom-shadow transition duration-300 ease-in-out mb-4">
+      Select a paper file
+    </button>
+    <input type="file" id="fileInput" class="hidden" />
+  </div>
+
+  <footer class="absolute bottom-0 left-0 right-0 p-4 text-center border-t border-gray-800">
+    <p>This application is developed by Bo Chen, Jianhong Li, Yucheng Du</p>
+  </footer>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      var formData = new FormData();
+      formData.append('file', file);
+    
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/page2.html'; 
+        } else if(response.status === 503) {
+          alert('Grobid service is not running. (The docker is preparing, please wait)'); 
+        } else if(response.status === 401) {
+          alert('Only PDF files are allowed!'); 
+        } else {
+          throw new Error('Upload failed with status: ' + response.status);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error: ' + error.message); 
+      });
+    });
+    </script>
+    
+</body>
+</html>

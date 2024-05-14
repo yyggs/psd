@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Paper Detail Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .arrow {
+      border: solid black;
+      border-width: 0 3px 3px 0;
+      display: inline-block;
+      padding: 3px;
+      transform: rotate(-45deg);
+      -webkit-transform: rotate(-45deg);
+      margin-right: 5px;
+    }
+
+    .container-wrapper {
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 70%;
+      margin: auto;
+      height: 100vh; /* Adjusted to fill the full viewport height */
+      display: flex;
+      flex-direction: column;
+  }
+
+  .top-button {
+    border: 0.5px solid black; /* This will add the black border */
+  }
+
+  .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      transition: background-color 0.2s;
+    }
+
+  </style>
+</head>
+<body class="bg-gray-200 text-black">
+
+  <a href="/" class="back-button px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black font-semibold">Back</a>
+
+  <div class="container-wrapper">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Top button section -->
+      <div class="bg-gray-100 rounded top-button p-4 mb-6 flex items-center">
+        <img id="img-uploaded" src="/static/pic/number-0.png" alt="Uploaded" style="width: 20px; height: 20px; margin-right: 10px;">
+        <button onclick="updateDetails('0')" class="text-left text-lg font-semibold w-full hover:bg-gray-200">The uploaded paper</button>
+      </div>
+
+
+      <!-- Similar papers list -->
+      <div class="mb-6">
+        <h2 class="font-semibold text-xl mb-2">Similar Papers</h2>
+        <ol class="space-y-2">
+          <li class="flex items-center">
+            <img id="img-paper1" src="/static/pic/number-1.png" alt="1" style="width: 20px; height: 20px; margin-right: 10px;">
+            <button onclick="updateDetails('1')" class="w-full text-left px-4 py-2 bg-red-400 rounded hover:bg-red-400">The first similar paper</button>
+          </li>
+          <li class="flex items-center">
+            <img id="img-paper2" src="/static/pic/number-2.png" alt="2" style="width: 20px; height: 20px; margin-right: 10px;">
+            <button onclick="updateDetails('2')" class="w-full text-left px-4 py-2 bg-red-300 rounded hover:bg-red-200">The second similar paper</button>
+          </li>
+          <li class="flex items-center">
+            <img id="img-paper3" src="/static/pic/number-3.png" alt="3" style="width: 20px; height: 20px; margin-right: 10px;">
+            <button onclick="updateDetails('3')" class="w-full text-left px-4 py-2 bg-red-200 rounded hover:bg-red-100">The third similar paper</button>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Detail section -->
+      <div id="details" class="bg-gray-100 rounded-lg p-4">
+        <h3 class="font-semibold text-xl mb-4">Detailed Information</h3>
+        <div class="space-y-2">
+          <!-- Dynamic content will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Function to update the article details display based on the clicked button
+function updateDetails(paperId) {
+  const url = `/paper-details/${paperId}`;
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      // Update the image source for all items to default numbers
+      for (let i = 0; i <= 3; i++) {
+        let imgId = i === 0 ? 'img-uploaded' : `img-paper${i}`;
+        document.getElementById(imgId).src = `/static/pic/number-${i}.png`;
+      }
+
+      // Change the current item's image to an arrow
+      const currentImg = document.getElementById(`img-${paperId === 'uploaded' ? 'uploaded' : `paper${paperId}`}`);
+      if (currentImg) {
+        currentImg.src = '/static/pic/arrow.png';
+      }
+
+      // Update the details section with data from the article
+      let detailsDiv = document.getElementById('details');
+      let title = data.title ? `<p>${data.title}</p>` : '<p>This article does not have this section.</p>';
+      let doi = data.doi ? `<p>${data.doi}</p>` : '<p>No DOI available.</p>';
+      let abstract = data.abstract ? `<p>${data.abstract}</p>` : '<p>This article does not have this section.</p>';
+      let referencesHtml = data.references.length > 0 ? data.references.slice(0, 10).map(ref => `<li>${ref}</li>`).join('') : '<li>This article does not have this section.</li>';
+      let expandButtonHtml = data.references.length > 10 ? `<button id="expandButton" class="w-full text-center px-4 py-2 mt-2 bg-gray-300 rounded hover:bg-gray-400" onclick="toggleReferences('${paperId}')">Expand</button>` : '';
+      
+      detailsDiv.innerHTML = `
+        <h3 class="font-semibold text-xl mb-4">Detailed Information</h3>
+        <div class="space-y-2">
+          <div>
+            <h4 class="font-semibold">Title:</h4>
+            ${title}
+          </div>
+          <div>
+            <h4 class="font-semibold">DOI:</h4>
+            ${doi}
+          </div>
+          <div>
+            <h4 class="font-semibold">Abstract:</h4>
+            ${abstract}
+          </div>
+          <div>
+            <h4 class="font-semibold">References:</h4>
+            <ul id="referenceList">${referencesHtml}</ul>
+            ${expandButtonHtml}
+          </div>
+        </div>
+      `;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      document.getElementById('details').innerHTML = '<p>Failed to load article details. Please try again later.</p>';
+    });
+}
+
+function toggleReferences(paperId) {
+  let button = document.getElementById("expandButton");
+  let referenceList = document.getElementById("referenceList");
+  fetch(`/paper-details/${paperId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (button.innerText === "Expand") {
+        referenceList.innerHTML = data.references.map(ref => `<li>${ref}</li>`).join('');
+        button.innerText = "Collapse";
+      } else {
+        referenceList.innerHTML = data.references.slice(0, 10).map(ref => `<li>${ref}</li>`).join('');
+        button.innerText = "Expand";
+      }
+    })
+    .catch(error => {
+      console.error('Error toggling references:', error);
+    });
+}
+// Automatically load the details for the uploaded paper when the page loads
+window.onload = () => {
+  updateDetails('0'); // Assuming '0' corresponds to the uploaded paper
+};
+</script>
+
+</body>
+</html>

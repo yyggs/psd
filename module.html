@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Similar Papers Finder</title>
+<style>
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+.instructions, .results, .details {
+    border: 1px solid #000;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.instructions p, .instructions button, .instructions .custom-upload {
+    margin: 0;
+    padding: 10px 0;
+}
+
+.custom-upload {
+    padding: 10px 20px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.custom-upload:hover {
+    background-color: #e8e8e8;
+}
+
+#fileInput {
+    display: none; /* Hide the actual file input */
+}
+
+#paperList {
+    list-style: none;
+    padding: 0;
+}
+
+#paperList li {
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+#paperList li:last-child {
+    border-bottom: none;
+}
+
+.paperTitle {
+    cursor: pointer;
+}
+
+.details {
+    display: none; /* Initially hidden */
+}
+
+/* Additional styles can be added as per the design requirements */
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="instructions">
+        <p>Click button to upload a paper</p>
+        <label for="fileInput" class="custom-upload">Upload</label>
+        <input id="fileInput" type="file">
+    </div>
+    <div class="results">
+        <ul id="paperList">
+            <li>1. <span class="paperTitle">The Most Similar Paper Title One</span></li>
+            <li>2. <span class="paperTitle">The Second Similar Paper Title Two</span></li>
+            <li>3. <span class="paperTitle">The Third Similar Paper Title Three</span></li>
+        </ul>
+    </div>
+    <div class="details" id="paperDetails">
+        <!-- Details will be populated here based on selection -->
+    </div>
+        <div class="sidebar">
+        <ul>
+            <li>Upload a file</li>
+            <li>Click on similar article titles</li>
+            <li>Display information</li>
+        </ul>
+    </div>
+
+</div>
+<script>
+document.getElementById('paperList').addEventListener('click', function(e) {
+    if (e.target && e.target.matches(".paperTitle")) {
+        var paperDetails = document.getElementById('paperDetails');
+        var paperNumber = e.target.parentNode.textContent.split('.')[0];
+
+        fetch(`/paper-details/${paperNumber}`)
+            .then(response => response.json())
+            .then(data => {
+                var content = `
+                    <h3>${data.title}</h3>
+                    <p><strong>Keywords:</strong> ${data.keywords.join(', ')}</p>
+                    <p><strong>Abstract:</strong> ${data.abstract}</p>
+                    <p><strong>References:</strong> <ul>${data.references.map(ref => `<li>${ref}</li>`).join('')}</ul></p>
+                `;
+
+                paperDetails.innerHTML = content;
+                paperDetails.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+});
+
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        var formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Upload successfully"); // Alert on successful upload
+            console.log(data.message);
+            // You can update the page based on the response
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+
+</script>
+</body>
+</html>
